@@ -68,9 +68,9 @@ async def on_presence_update(before, after):
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-    if before.channel is None and after.channel is not None:
+    if before.channel != after.channel:
         canale_vocale = discord.utils.get(member.guild.text_channels, name="notifiche-vocale")
-        if canale_vocale:
+        if canale_vocale and after.channel:
             await canale_vocale.send(f"🎙️ {member.name} è entrato nel canale vocale **{after.channel.name}**")
 
 @bot.command()
