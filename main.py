@@ -104,15 +104,36 @@ async def classifica_mese(ctx):
 @tasks.loop(hours=24)
 async def invia_classifica_mensile():
     oggi = datetime.now()
-    if oggi.day == 30:
-        for guild in bot.guilds:
-            canale = discord.utils.get(guild.text_channels, name="classifica-giocatori")
-            if canale:
-                await canale.send("📅 Fine mese! Ecco le classifiche aggiornate:\n")
-                await classifica_mese(await bot.get_context(canale.last_message))
-                await classifica(await bot.get_context(canale.last_message))
-        dati_mensili.clear()
-        salva_dati()
+if oggi.day == 30:
+    for guild in bot.guilds:
+        canale = discord.utils.get(guild.text_channels, name="classifica-giocatori")
+        if canale:
+            await canale.send("📅 Fine mese! Ecco le classifiche aggiornate:\n")
+
+            await canale.send("**📅 Classifica mensile:**")
+            if dati_mensili:
+                classifica_m = sorted(dati_mensili.items(), key=lambda x: x[1], reverse=True)
+                messaggio_m = ""
+                for i, (utente, secondi) in enumerate(classifica_m, start=1):
+                    ore = round(secondi / 3600, 2)
+                    messaggio_m += f"{i}. {utente}: {ore} ore\n"
+                await canale.send(messaggio_m)
+            else:
+                await canale.send("Nessun dato disponibile per il mese.")
+
+            await canale.send("**🏆 Classifica globale:**")
+            if dati_globali:
+                classifica_g = sorted(dati_globali.items(), key=lambda x: x[1], reverse=True)
+                messaggio_g = ""
+                for i, (utente, secondi) in enumerate(classifica_g, start=1):
+                    ore = round(secondi / 3600, 2)
+                    messaggio_g += f"{i}. {utente}: {ore} ore\n"
+                await canale.send(messaggio_g)
+            else:
+                await canale.send("Nessun dato globale disponibile.")
+
+    dati_mensili.clear()
+    salva_dati()
 
 # Avvio
 keep_alive()
