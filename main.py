@@ -36,14 +36,29 @@ async def on_voice_state_update(member, before, after):
 
     if canale_vocale:
         if before.channel is None and after.channel is not None:
-            # Entrata in un canale vocale
             await canale_vocale.send(f"🎙️ {member.name} è **entrato** nel canale vocale **{after.channel.name}**")
         elif before.channel is not None and after.channel is None:
-            # Uscita da un canale vocale
             await canale_vocale.send(f"🔕 {member.name} è **uscito** dal canale vocale **{before.channel.name}**")
         elif before.channel != after.channel:
-            # Cambio di canale vocale
             await canale_vocale.send(f"🔄 {member.name} è passato da **{before.channel.name}** a **{after.channel.name}**")
+
+@bot.event
+async def on_presence_update(before, after):
+    canale_gioco = discord.utils.get(after.guild.text_channels, name="notifiche-gioco")
+    if not canale_gioco:
+        print(f"⚠️ Canale 'notifiche-gioco' non trovato nella guild {after.guild.name}")
+        return
+
+    # Quando inizia a giocare a qualcosa di nuovo
+    if after.activity and after.activity.type == discord.ActivityType.playing:
+        # Se prima non giocava o gioco cambiato
+        if not before.activity or before.activity.name != after.activity.name:
+            await canale_gioco.send(f"🎮 {after.name} ha iniziato a giocare a **{after.activity.name}**")
+
+    # Quando smette di giocare
+    elif before.activity and before.activity.type == discord.ActivityType.playing:
+        if not after.activity or after.activity.type != discord.ActivityType.playing:
+            await canale_gioco.send(f"🛑 {after.name} ha smesso di giocare a **{before.activity.name}**")
 
 # Avvio
 keep_alive()
